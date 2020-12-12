@@ -32,9 +32,6 @@ void writeLandmarksToFile(full_object_detection &landmarks, const std::string &f
 
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    std::cout << CV_VERSION << std::endl;
-
 
     // Get the face detector
     frontal_face_detector faceDetector = get_frontal_face_detector();
@@ -57,7 +54,6 @@ int main() {
     cv_image<bgr_pixel> dlibIm(im);
 
     // Detect faces in the image
-
     std::vector<dlib::rectangle> faceRects = faceDetector(dlibIm);
     std::cout << "Number of faces detected: " << faceRects.size() << std::endl;
 
