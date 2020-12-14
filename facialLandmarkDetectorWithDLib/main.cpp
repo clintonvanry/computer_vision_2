@@ -47,6 +47,8 @@ int main() {
 
     Mat im = imread(imageFilename);
 
+    std::cout << im.depth() << std::endl;
+
     // landmarks will be stored in results/famil_0.txt
     std::string landmarksBasename("results/family");
 
