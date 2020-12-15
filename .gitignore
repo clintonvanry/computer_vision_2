@@ -3,3 +3,6 @@ facialLandmarkDetectorWithDLib/cmake-build-debug
 facialAlignmentWithDlib/.idea
 facialAlignmentWithDlib/cmake-build-debug
 facialAlignmentWithDlib/data/.gitkeep
+webcamFacialLandmarkDetectorWithDlib/.idea
+webcamFacialLandmarkDetectorWithDlib/cmake-build-debug
+webcamFacialLandmarkDetectorWithDlib/cmake-build-release
