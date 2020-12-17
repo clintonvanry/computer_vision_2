@@ -9,3 +9,6 @@ webcamFacialLandmarkDetectorWithDlib/cmake-build-release
 webcamFacialLandmarkDectorStabiliserWithDlib/.idea
 webcamFacialLandmarkDectorStabiliserWithDlib/cmake-build-debug
 webcamFacialLandmarkDectorStabiliserWithDlib/cmake-build-release
+trainingFacialLandmarkDectorWithDlib/.idea
+trainingFacialLandmarkDectorWithDlib/cmake-build-debug
+trainingFacialLandmarkDectorWithDlib/cmake-build-release
