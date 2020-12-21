@@ -42,7 +42,7 @@ void warpTriangle(Mat &img1, Mat &img2, const std::vector<Point2f>& tri1, const 
     multiply(img2Cropped,mask, img2Cropped);
     multiply(img2(r2), Scalar(1.0,1.0,1.0) - mask, img2(r2));
     add(img2(r2),img2Cropped, img2(r2));
-    
+
 
 }
 
