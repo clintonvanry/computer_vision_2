@@ -12,3 +12,5 @@ webcamFacialLandmarkDectorStabiliserWithDlib/cmake-build-release
 trainingFacialLandmarkDectorWithDlib/.idea
 trainingFacialLandmarkDectorWithDlib/cmake-build-debug
 trainingFacialLandmarkDectorWithDlib/cmake-build-release
+alphaBlend/.idea
+alphaBlend/cmake-build-debug
