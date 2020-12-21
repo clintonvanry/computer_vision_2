@@ -14,3 +14,5 @@ trainingFacialLandmarkDectorWithDlib/cmake-build-debug
 trainingFacialLandmarkDectorWithDlib/cmake-build-release
 alphaBlend/.idea
 alphaBlend/cmake-build-debug
+warpTriangle/.idea
+warpTriangle/cmake-build-debug
