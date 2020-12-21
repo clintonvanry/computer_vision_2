@@ -16,3 +16,7 @@ alphaBlend/.idea
 alphaBlend/cmake-build-debug
 warpTriangle/.idea
 warpTriangle/cmake-build-debug
+delaunayTriangulation/.idea
+delaunayTriangulation/cmake-build-debug
+delaunayTriangulationAnimation/.idea
+delaunayTriangulationAnimation/cmake-build-debug
