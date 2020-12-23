@@ -40,7 +40,7 @@ int main() {
 
     // Output filename
     std::string outputFileName("smiling-man-delaunay.tri");
-    
+
 
     // Write delaunay triangles
     writeDelaunay(subdiv, points, outputFileName);
