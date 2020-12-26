@@ -22,3 +22,6 @@ delaunayTriangulationAnimation/.idea
 delaunayTriangulationAnimation/cmake-build-debug
 faceAveraging/.idea
 faceAveraging/cmake-build-debug
+faceAveragingWithDlib/.idea
+faceAveragingWithDlib/cmake-build-debug
+faceAveragingWithDlib/data/.gitkeep
