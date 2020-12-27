@@ -54,6 +54,7 @@ int main() {
     for(auto & imageName : imageNames)
     {
         Mat img = imread(imageName);
+        std::cout << img.channels() << std::endl;
         if(!img.data)
         {
             std::cout << "image " << imageName << " not read properly" << std::endl;
