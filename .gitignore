@@ -25,3 +25,6 @@ faceAveraging/cmake-build-debug
 faceAveragingWithDlib/.idea
 faceAveragingWithDlib/cmake-build-debug
 faceAveragingWithDlib/data/.gitkeep
+faceMorphWithDlib/.idea
+faceMorphWithDlib/cmake-build-debug
+faceMorphWithDlib/data/.gitkeep
