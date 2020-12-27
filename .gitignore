@@ -30,3 +30,5 @@ faceMorphWithDlib/cmake-build-debug
 faceMorphWithDlib/data/.gitkeep
 bugEyeFilterWithDlib/.idea
 bugEyeFilterWithDlib/cmake-build-debug
+videoBugEyeFilterWithDlib/.idea
+videoBugEyeFilterWithDlib/cmake-build-debug
