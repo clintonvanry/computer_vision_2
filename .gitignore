@@ -32,3 +32,5 @@ bugEyeFilterWithDlib/.idea
 bugEyeFilterWithDlib/cmake-build-debug
 videoBugEyeFilterWithDlib/.idea
 videoBugEyeFilterWithDlib/cmake-build-debug
+faceSwappingWithDlib/.idea
+faceSwappingWithDlib/cmake-build-debug
