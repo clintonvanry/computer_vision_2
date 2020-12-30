@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <dlib/opencv.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <dlib/image_processing/frontal_face_detector.h>
@@ -10,7 +11,7 @@
 #define FACE_DOWNSAMPLE_RATIO_DLIB 1
 
 // forward declares
-double MouthAspectRatio(const dlib::full_object_detection &landmarks);
+
 bool smile_detector(const dlib::cv_image<dlib::bgr_pixel> &cimg, const dlib::rectangle &face, const dlib::full_object_detection &landmarks);
 
 
@@ -59,51 +60,27 @@ bool smile_detector(const dlib::cv_image<dlib::bgr_pixel> &cimg, \
 {
     // Return true if a smile is detected, else return false
     bool isSmiling = false;
+
     ///
     /// YOUR CODE HERE
     ///
+    cv::Point2f leftMouthCorner = cv::Point2f (landmarks.part(48).x(), landmarks.part(48).y());
+    cv::Point2f rightMouthCorner = cv::Point2f(landmarks.part(54).x(), landmarks.part(54).y());
+    cv::Point2f leftJawCorner = cv::Point2f(landmarks.part(3).x(), landmarks.part(3).y());
+    cv::Point2f rightJawCorner = cv::Point2f(landmarks.part(13).x(), landmarks.part(13).y());
 
-    double mar = MouthAspectRatio(landmarks);
+    auto widthOfMouth = std::abs( leftMouthCorner.x - rightMouthCorner.x);
+    auto widthOfJaw = std::abs(leftJawCorner.x - rightJawCorner.x);
+    auto ratio = (widthOfMouth /widthOfJaw);
 
-    if( mar < 0.3 || mar > 0.38){
+    if( ratio > 0.447){
         isSmiling = true;
     }
-    //std::cout << "MAR: " << mar << " smiling: " << isSmiling << std::endl;
+
+    std::cout << " ratio: " << ratio << std::endl;
 
     return isSmiling;
 }
-double MouthAspectRatio(const dlib::full_object_detection &landmarks){
-    // Formulae: MAR = L / D
-    // D is the euclidean distance between left corner and right corner of the mouth
-    // L is the euclidean distance between the lips
-
-    // Smiling with the mouth closed increases the distance between p49 and p55 and decreases the distance between the top and bottom points.
-    // So, L will decrease and D will increase.
-    // Smiling with mouth open leads to D decreasing and L increasing.
-
-    //https://stackoverflow.com/questions/38365900/using-opencv-norm-function-to-get-euclidean-distance-of-two-points
-    // compute D
-    cv::Point2f leftMouthCorner = cv::Point2f (landmarks.part(48).x(), landmarks.part(48).y());
-    cv::Point2f rightMouthCorner = cv::Point2f(landmarks.part(55).x(), landmarks.part(55).y());
-    double differenceD = std::abs( cv::norm( cv::Mat(leftMouthCorner),cv::Mat( rightMouthCorner)));
-
-    cv::Point2f leftLipTop = cv::Point2f(landmarks.part(50).x(), landmarks.part(50).y());
-    cv::Point2f leftLipBottom =  cv::Point2f(landmarks.part(58).x(), landmarks.part(58).y());
-    double differenceL1 = std::abs( cv::norm( cv::Mat(leftLipTop),cv::Mat( leftLipBottom)));
-
-    cv::Point2f middleLipTop = cv::Point2f(landmarks.part(51).x(), landmarks.part(51).y());
-    cv::Point2f middleLipBottom = cv::Point2f(landmarks.part(57).x(), landmarks.part(57).y());
-    double differenceL2 = std::abs( cv::norm( cv::Mat(middleLipTop),cv::Mat( middleLipBottom)));
-
-    cv::Point2f rightLipTop = cv::Point2f(landmarks.part(52).x(), landmarks.part(52).y());
-    cv::Point2f rightLipBottom =  cv::Point2f(landmarks.part(56).x(), landmarks.part(56).y());
-    double differenceL3 = std::abs( cv::norm( cv::Mat(rightLipTop),cv::Mat( rightLipBottom)));
-
-    double differenceLAll = (differenceL1 + differenceL2 + differenceL3) / 3;
-
-    return differenceLAll /  differenceD;
-}
-
 
 int main(){
 
@@ -144,8 +121,6 @@ int main(){
         }
 
         std::cout << "Processing frame: " << frame_number << std::endl;
-        //cv::imshow("Frame " + frame_number, frame);
-        //cv::waitKey(0);
 
         IMAGE_RESIZE = (float)frame.rows / RESIZE_HEIGHT;
         cv::resize(frame, frame, cv::Size(), 1.0 / IMAGE_RESIZE, 1.0 / IMAGE_RESIZE);
@@ -175,11 +150,24 @@ int main(){
                     (long)(faces[0].right() * FACE_DOWNSAMPLE_RATIO_DLIB),
                     (long)(faces[0].bottom() * FACE_DOWNSAMPLE_RATIO_DLIB)
             );
+
             dlib::full_object_detection landmarks = shape_predictor(cimg, face);
+
+            //auto mar = MouthAspectRatio(landmarks);
+            //auto jar = JawAspectRatio(landmarks);
+
             if (smile_detector(cimg, face, landmarks)) {
-                cv::putText(frame, cv::format("Smiling :)"), cv::Point(10, 30),
+                cv::putText(frame, cv::format("Smiling :) "), cv::Point(10, 30),
                             cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+                std::string imgFilename = "results/smile/img_" + std::to_string( frame_number)  + ".jpg";
+                cv::imwrite(imgFilename,frame);
                 smile_frames.push_back(frame_number);
+            }
+            else{
+                cv::putText(frame, cv::format("Not Smiling :) "), cv::Point(10, 30),
+                            cv::FONT_HERSHEY_SIMPLEX, 0.7, cv::Scalar(0, 0, 255), 2, cv::LINE_AA);
+                std::string imgFilename = "results/nosmile/img_" + std::to_string( frame_number)  + ".jpg";
+                cv::imwrite(imgFilename,frame);
             }
         }
 
@@ -193,6 +181,7 @@ int main(){
         frame_number++;
     }
 
+    std::cout << "Total smile detected is " << smile_frames.size() << " for " << frame_number << " number of frames" << std::endl;
     capture.release();
     smileDetectionOut.release();
 
