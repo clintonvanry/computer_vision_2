@@ -1,11 +1,11 @@
 #include <iostream>
 #include <cmath>
 #include <map>
+#include <filesystem>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
-#include <dlib/string.h>
 #include <dlib/dnn.h>
 #include <dlib/opencv.h>
 #include <dlib/image_processing.h>
@@ -13,65 +13,29 @@
 
 #include "faceBlendCommon.hpp"
 
-// dirent.h is pre-included with *nix like systems
-// but not for Windows. So we are trying to include
-// this header files based on Operating System
-#ifdef _WIN32
-#include "dirent.h"
-#elif __APPLE__
-#include "TargetConditionals.h"
-#if TARGET_OS_MAC
-  #include <dirent.h>
-#else
-  #error "Not Mac. Find an alternative to dirent"
-#endif
-#elif __linux__
-  #include <dirent.h>
-#elif __unix__ // all unices not caught above
-  #include <dirent.h>
-#else
-  #error "Unknown compiler"
-#endif
-
 using namespace cv;
 using namespace dlib;
 
-// Reads files, folders and symbolic links in a directory
-void listdir(string dirName, std::vector<string>& folderNames, std::vector<string>& fileNames, std::vector<string>& symlinkNames) {
-    DIR *dir;
-    struct dirent *ent;
+namespace fs = std::filesystem;
 
-    if ((dir = opendir(dirName.c_str())) != NULL) {
-        /* print all the files and directories within directory */
-        while ((ent = readdir(dir)) != NULL) {
-            // ignore . and ..
-            if((strcmp(ent->d_name,".") == 0) || (strcmp(ent->d_name,"..") == 0)) {
-                continue;
-            }
-            string temp_name = ent->d_name;
-            // Read more about file types identified by dirent.h here
-            // https://www.gnu.org/software/libc/manual/html_node/Directory-Entries.html
-            switch (ent->d_type) {
-                case DT_REG:
-                    fileNames.push_back(temp_name);
-                    break;
-                case DT_DIR:
-                    folderNames.push_back(dirName + "/" + temp_name);
-                    break;
-                case DT_LNK:
-                    symlinkNames.push_back(temp_name);
-                    break;
-                default:
-                    break;
-            }
-            // cout << temp_name << endl;
+void listDirectory(string dirName, std::vector<string>& folderNames, std::vector<string>& fileNames, std::vector<string>& symlinkNames)
+{
+    for(const auto& entry : fs::directory_iterator(fs::path(dirName)))
+    {
+        std::string fileName = entry.path().filename().string();
+        if(entry.is_directory()){
+            std::cout << "directory:" <<  fileName << std::endl;
+            folderNames.emplace_back(entry.path().string());
         }
-        // sort all the files
-        std::sort(folderNames.begin(), folderNames.end());
-        std::sort(fileNames.begin(), fileNames.end());
-        std::sort(symlinkNames.begin(), symlinkNames.end());
-        closedir(dir);
+        if(entry.is_regular_file()){
+            std::cout << "filename:" <<  fileName << std::endl;
+            fileNames.emplace_back(fileName);
+        }
+        if(entry.is_symlink()){
+            std::cout << "symlink:" <<  fileName << std::endl;
+        }
     }
+
 }
 
 // filter files having extension ext i.e. jpg
@@ -103,7 +67,8 @@ int main() {
 
     // fileNames and symlinkNames are useless here
     // as we are looking for sub-directories only
-    listdir(faceDatasetFolder, subfolders, fileNames, symlinkNames);
+    listDirectory(faceDatasetFolder, subfolders, fileNames, symlinkNames);
+    //listdir(faceDatasetFolder, subfolders, fileNames, symlinkNames);
 
     // names: vector containing names of subfolders i.e. persons
     // labels: integer labels assigned to persons
@@ -145,7 +110,8 @@ int main() {
         // folderNames and symlinkNames are useless here
         // as we are only looking for files here
         // read all files present in subFolder
-        listdir(subfolders[i], folderNames, fileNames, symlinkNames);
+        listDirectory(subfolders[i], folderNames, fileNames, symlinkNames);
+        //listdir(subfolders[i], folderNames, fileNames, symlinkNames);
         // filter only jpg files
         filterFiles(subfolders[i], fileNames, imagePaths, "jpg", imageLabels, i);
     }
