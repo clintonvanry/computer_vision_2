@@ -44,3 +44,5 @@ faceRecogTestWithOpenFace/.idea
 faceRecogTestWithOpenFace/cmake-build-debug
 faceRecogEnrollmentWithDlibResNet/.idea
 faceRecogEnrollmentWithDlibResNet/cmake-build-debug
+faceRecogTestWithDlibResNet/.idea
+faceRecogTestWithDlibResNet/cmake-build-debug
