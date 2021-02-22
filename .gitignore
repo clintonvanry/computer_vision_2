@@ -46,3 +46,7 @@ faceRecogEnrollmentWithDlibResNet/.idea
 faceRecogEnrollmentWithDlibResNet/cmake-build-debug
 faceRecogTestWithDlibResNet/.idea
 faceRecogTestWithDlibResNet/cmake-build-debug
+project2_doppelganger_celeb/cmake-build-debug
+project2_doppelganger_celeb/cmake-build-release
+project2_doppelganger_celeb/resource/asnlib/publicdata/celeb_mini
+project2_doppelganger_celeb/.idea
