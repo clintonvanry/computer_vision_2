@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <map>
-#include <filesystem>
+//#include <filesystem>
 #include <sstream>
 
 #include <opencv2/core.hpp>
@@ -14,11 +14,32 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 
 #include "labelData.h"
+#include "dirent.h"
 
 using namespace cv;
 using namespace dlib;
 
-namespace fs = std::filesystem;
+//namespace fs = std::filesystem;
+
+// dirent.h is pre-included with *nix like systems
+// but not for Windows. So we are trying to include
+// this header files based on Operating System
+#ifdef _WIN32
+#include "dirent.h"
+#elif __APPLE__
+#include "TargetConditionals.h"
+#if TARGET_OS_MAC
+  #include <dirent.h>
+#else
+  #error "Not Mac. Find an alternative to dirent"
+#endif
+#elif __linux__
+  #include <dirent.h>
+#elif __unix__ // all unices not caught above
+  #include <dirent.h>
+#else
+  #error "Unknown compiler"
+#endif
 
 #define THRESHOLD 0.52
 
@@ -57,25 +78,70 @@ using anet_type = loss_metric<fc_no_bias<128,avg_pool_everything<
                                                 >>>>>>>>>>>>;
 // ----------------------------------------------------------------------------------------
 
-void listDirectory(std::string dirName, std::vector<std::string>& folderNames, std::vector<std::string>& fileNames, std::vector<std::string>& symlinkNames)
+// Reads files, folders and symbolic links in a directory
+void listdir(std::string dirName, std::vector<std::string>& folderNames, std::vector<std::string>& fileNames, std::vector<std::string>& symlinkNames)
 {
-    for(const auto& entry : fs::directory_iterator(fs::path(dirName)))
-    {
-        std::string fileName = entry.path().filename().string();
-        if(entry.is_directory()){
-            std::cout << "reading directory:" <<  fileName << std::endl;
-            folderNames.emplace_back(entry.path().string());
-        }
-        if(entry.is_regular_file()){
-            std::cout << "filename:" <<  fileName << std::endl;
-            fileNames.emplace_back(fileName);
-        }
-        if(entry.is_symlink()){
-            std::cout << "symlink:" <<  fileName << std::endl;
-        }
-    }
+    DIR *dir;
+    struct dirent *ent;
 
+    if ((dir = opendir(dirName.c_str())) != NULL) {
+        /* print all the files and directories within directory */
+        while ((ent = readdir(dir)) != NULL) {
+            // ignore . and ..
+            if((strcmp(ent->d_name,".") == 0) || (strcmp(ent->d_name,"..") == 0)) {
+                continue;
+            }
+            std::string temp_name = ent->d_name;
+            // Read more about file types identified by dirent.h here
+            // https://www.gnu.org/software/libc/manual/html_node/Directory-Entries.html
+            switch (ent->d_type) {
+                case DT_REG:
+                    fileNames.push_back(temp_name);
+                    break;
+                case DT_DIR:
+                    folderNames.push_back(dirName + "/" + temp_name);
+                    break;
+                case DT_LNK:
+                    symlinkNames.push_back(temp_name);
+                    break;
+                default:
+                    break;
+            }
+            // cout << temp_name << endl;
+        }
+        // sort all the files
+        std::sort(folderNames.begin(), folderNames.end());
+        std::sort(fileNames.begin(), fileNames.end());
+        std::sort(symlinkNames.begin(), symlinkNames.end());
+        closedir(dir);
+    }
 }
+
+bool is_file_exist(const std::string fileName)
+{
+    std::ifstream infile(fileName.c_str());
+    return infile.good();
+}
+
+//void listDirectory(std::string dirName, std::vector<std::string>& folderNames, std::vector<std::string>& fileNames, std::vector<std::string>& symlinkNames)
+//{
+//    for(const auto& entry : fs::directory_iterator(fs::path(dirName)))
+//    {
+//        std::string fileName = entry.path().filename().string();
+//        if(entry.is_directory()){
+//            std::cout << "reading directory:" <<  fileName << std::endl;
+//            folderNames.emplace_back(entry.path().string());
+//        }
+//        if(entry.is_regular_file()){
+//            std::cout << "filename:" <<  fileName << std::endl;
+//            fileNames.emplace_back(fileName);
+//        }
+//        if(entry.is_symlink()){
+//            std::cout << "symlink:" <<  fileName << std::endl;
+//        }
+//    }
+//
+//}
 
 // filter files having extension ext i.e. jpg
 void filterFiles(std::string dirPath, std::vector<std::string>& fileNames, std::vector<std::string>& filteredFilePaths, const std::string& ext, std::vector<int>& imageLabels, int index){
@@ -176,7 +242,7 @@ void getFolderAndFiles(std::vector<std::string>& names,std::vector<int>& labels,
 
     // fileNames and symlinkNames are useless here
     // as we are looking for sub-directories only
-    listDirectory(faceDatasetFolder, subfolders, fileNames, symlinkNames);
+    listdir(faceDatasetFolder, subfolders, fileNames, symlinkNames);
 
     // variable to hold any subfolders within person subFolders
     std::vector<std::string> folderNames;
@@ -205,7 +271,7 @@ void getFolderAndFiles(std::vector<std::string>& names,std::vector<int>& labels,
         // folderNames and symlinkNames are useless here
         // as we are only looking for files here
         // read all files present in subFolder
-        listDirectory(subfolders[i], folderNames, fileNames, symlinkNames);
+        listdir(subfolders[i], folderNames, fileNames, symlinkNames);
         // filter only jpg files
         filterFiles(subfolders[i], fileNames, imagePaths, "JPEG", imageLabels, i);
     }
@@ -360,7 +426,7 @@ void loadTrainedData(const std::string& descriptorsFilePath, std::vector<int>&  
 }
 
 void test(std::vector<matrix<float,0,1>>& faceDescriptors, std::vector<int> faceLabels, std::map<int, std::string> labelNameMap,
-          frontal_face_detector& faceDetector, const shape_predictor& landmarkDetector, anet_type& net, std::map<int,std::string>& folderImageMap)
+          frontal_face_detector& faceDetector, const shape_predictor& landmarkDetector, anet_type& net, std::map<int,std::string>& folderImageMap, std::vector<std::pair<std::string,Mat>>& imageMap)
 {
 
     std::string faceTestFolder = "../resource/asnlib/publicdata/test-images";
@@ -370,7 +436,7 @@ void test(std::vector<matrix<float,0,1>>& faceDescriptors, std::vector<int> face
 
     // fileNames and symlinkNames are useless here
     // as we are looking for sub-directories only
-    listDirectory(faceTestFolder, subfolders, fileNames, symlinkNames);
+    listdir(faceTestFolder, subfolders, fileNames, symlinkNames);
     filterFiles(faceTestFolder, fileNames, imagePaths, "jpg", tmpImageLabels, 0);
     Dict celebs = generateLabelMap();
 
@@ -425,13 +491,20 @@ void test(std::vector<matrix<float,0,1>>& faceDescriptors, std::vector<int> face
                 std::string imageCelebPath = folderImageMap[label];
                 Mat imCeleb = cv::imread(imageCelebPath, cv::IMREAD_COLOR);
 
-                imshow(fileNames[fileNameIndex], im);
-                imshow(celebName, imCeleb);
+                //imshow(fileNames[fileNameIndex], im);
+                imageMap.push_back(std::make_pair(fileNames[fileNameIndex],im));
+                //imageMap[fileNames[fileNameIndex]] = im;
+                //imshow(celebName, imCeleb);
+                //imageMap[celebName] = imCeleb;
+                imageMap.push_back(std::make_pair(celebName,imCeleb));
 
                 std::cout << "foldername: " << name << std::endl;
                 std::cout << "celeb name:" << celebName << std::endl;
+                std::cout << "min Distance:" << minDistance << std::endl;
             }
-
+            else{
+                std::cout << "no match found. min distance: " << minDistance << std::endl;
+            }
 
 
         }
@@ -461,7 +534,8 @@ int main() {
     std::vector<int> faceLabels;
 
     std::string descriptorsFilePath = "../descriptors.csv";
-    if(fs::exists(descriptorsFilePath))
+    //if(fs::exists(descriptorsFilePath))
+    if(is_file_exist(descriptorsFilePath))
     {
         loadTrainedData(descriptorsFilePath,faceLabels,faceDescriptors, labelNameMap,folderImageMap);
     }
@@ -472,8 +546,18 @@ int main() {
         writeDescriptorsToDisk(faceDescriptors,faceLabels);
     }
 
+    std::vector<std::pair<std::string,Mat>> imageMap;
+    //std::map<std::string,Mat> imageMap;
+    test(faceDescriptors,faceLabels,labelNameMap, faceDetector, landmarkDetector,net, folderImageMap, imageMap);
 
-    test(faceDescriptors,faceLabels,labelNameMap, faceDetector, landmarkDetector,net, folderImageMap);
+
+
+
+
+    for(auto element : imageMap)
+    {
+        imshow(element.first, element.second);
+    }
 
     waitKey(0);
     destroyAllWindows();
