@@ -198,6 +198,7 @@ void nearestNeighbor(dlib::matrix<float, 0, 1>& faceDescriptorQuery,
     {
         label = -1;
     } else{
+        std::cout << "minDistIndex: " << minDistIndex << " minDistance:" << minDistance << std::endl;
         label = faceLabels[minDistIndex];
     }
 }
@@ -244,6 +245,7 @@ void getFolderAndFiles(std::vector<std::string>& names,std::vector<int>& labels,
     // as we are looking for sub-directories only
     listdir(faceDatasetFolder, subfolders, fileNames, symlinkNames);
 
+    std::cout << "getFolderAndFiles subfolders:" << subfolders.size() << std::endl;
     // variable to hold any subfolders within person subFolders
     std::vector<std::string> folderNames;
 
@@ -272,6 +274,7 @@ void getFolderAndFiles(std::vector<std::string>& names,std::vector<int>& labels,
         // as we are only looking for files here
         // read all files present in subFolder
         listdir(subfolders[i], folderNames, fileNames, symlinkNames);
+        //std::cout << "getFolderAndFiles subfolder:" << subfolders[i] << " has file count: " << fileNames.size() << std::endl;
         // filter only jpg files
         filterFiles(subfolders[i], fileNames, imagePaths, "JPEG", imageLabels, i);
     }
@@ -407,6 +410,8 @@ void readDescriptors(const std::string& filename, std::vector<int>& faceLabels, 
 void loadTrainedData(const std::string& descriptorsFilePath, std::vector<int>&  faceLabels, std::vector<matrix<float,0,1>>& faceDescriptors,std::map<int, std::string>& labelNameMap,std::map<int,std::string>& folderImageMap )
 {
     readDescriptors(descriptorsFilePath, faceLabels, faceDescriptors);
+    std::cout << "trained data faceLabels: " << faceLabels.size() << std::endl;
+    std::cout << "trained data faceDescriptors: " << faceDescriptors.size() << std::endl;
 
     std::vector<std::string> names;
     std::vector<int> labels;
@@ -416,13 +421,17 @@ void loadTrainedData(const std::string& descriptorsFilePath, std::vector<int>&  
 
     getFolderAndFiles(names,labels,imagePaths,labelNameMap,imageLabels);
 
+    std::cout << "imagePaths: " << imagePaths.size() << std::endl;
     for (int i = 0; i < imagePaths.size(); i++) {
         std::string imagePath = imagePaths[i];
         int imageLabel = imageLabels[i];
-        if (!mapContainsKey(folderImageMap, imageLabel)) {
+        if (!mapContainsKey(folderImageMap, imageLabel))
+        {
+            //std::cout << "folder: " << imageLabel << " img path: " << imagePath << std::endl;
             folderImageMap[imageLabel] = imagePath;
         }
     }
+    std::cout << "folderImageMap: " << folderImageMap.size() << std::endl;
 }
 
 void test(std::vector<matrix<float,0,1>>& faceDescriptors, std::vector<int> faceLabels, std::map<int, std::string> labelNameMap,

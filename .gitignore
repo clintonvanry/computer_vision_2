@@ -52,3 +52,6 @@ project2_doppelganger_celeb/resource/asnlib/publicdata/celeb_mini
 project2_doppelganger_celeb/.idea
 project2_doppelganger_celeb/resource/asnlib/publicdata/test-images/IMG_6609.jpg
 project2_doppelganger_celeb/resource/asnlib/publicdata/test-images/IMG_6809.jpg
+linear_regressionWithLibTorch/.idea
+linear_regressionWithLibTorch/cmake-build-debug
+linear_regressionWithLibTorch/cmake-build-release
