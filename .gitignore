@@ -57,3 +57,5 @@ linear_regressionWithLibTorch/cmake-build-debug
 linear_regressionWithLibTorch/cmake-build-release
 imgClassFeedFwdNNWithLibTorch/.idea
 imgClassFeedFwdNNWithLibTorch/cmake-build-debug
+imgClassCNNWithLibTorch/.idea
+imgClassCNNWithLibTorch/cmake-build-debug
