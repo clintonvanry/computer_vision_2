@@ -133,41 +133,42 @@ struct Net : torch::nn::Module
 {
     Net()
     {
+        // https://appliedmachinelearning.blog/2018/03/24/achieving-90-accuracy-in-object-recognition-task-on-cifar-10-dataset-with-keras-convolutional-neural-networks/
         //torch::nn::Conv2dOptions(input_channels, output_channels, kernel_size).padding(p).stride(s) and similary other options
         conv1_1 = register_module("conv1_1", torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 32, 3).padding(1)));
         conv1_2 = register_module("conv1_2", torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 32, 3)));
-        dp1 = register_module("dp1", torch::nn::Dropout(0.25));
+        dp1 = register_module("dp1", torch::nn::Dropout(0.25)); // 0.25
         conv2_1 = register_module("conv2_1", torch::nn::Conv2d(torch::nn::Conv2dOptions(32, 64, 3).padding(1)));
         conv2_2 = register_module("conv2_2", torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 64, 3)));
-        dp2 = register_module("dp2", torch::nn::Dropout(0.25));
+        dp2 = register_module("dp2", torch::nn::Dropout(0.30));
         conv3_1 = register_module("conv3_1", torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 64, 3).padding(1)));
         conv3_2 = register_module("conv3_2", torch::nn::Conv2d(torch::nn::Conv2dOptions(64, 64, 3)));
-        dp3 = register_module("dp3", torch::nn::Dropout(0.25));
+        dp3 = register_module("dp3", torch::nn::Dropout(0.30));
         fc1 = register_module("fc1", torch::nn::Linear(2 * 2 * 64, 512));
-        dp4 = register_module("dp4", torch::nn::Dropout(0.5));
+        dp4 = register_module("dp4", torch::nn::Dropout(0.4));
         fc2 = register_module("fc2", torch::nn::Linear(512, 10));
     }
 
     torch::Tensor forward(torch::Tensor x)
     {
-        x = torch::sigmoid(conv1_1->forward(x));
-        x = torch::sigmoid(conv1_2->forward(x));
+        x = torch::elu(conv1_1->forward(x));
+        x = torch::elu(conv1_2->forward(x));
         x = torch::max_pool2d(x, 2);
         x = dp1(x);
 
-        x = torch::sigmoid(conv2_1->forward(x));
-        x = torch::sigmoid(conv2_2->forward(x));
+        x = torch::elu(conv2_1->forward(x));
+        x = torch::elu(conv2_2->forward(x));
         x = torch::max_pool2d(x, 2);
         x = dp2(x);
 
-        x = torch::sigmoid(conv3_1->forward(x));
-        x = torch::sigmoid(conv3_2->forward(x));
+        x = torch::elu(conv3_1->forward(x));
+        x = torch::elu(conv3_2->forward(x));
         x = torch::max_pool2d(x, 2);
         x = dp3(x);
 
         x = x.view({-1, 2 * 2 * 64});
 
-        x = torch::sigmoid(fc1->forward(x));
+        x = torch::elu(fc1->forward(x));
         x = dp4(x);
         x = torch::log_softmax(fc2->forward(x), 1);
 
@@ -201,6 +202,8 @@ void train(int32_t epoch, Net& model, torch::Device device, DataLoader& data_loa
         optimizer.zero_grad();
         auto output = model.forward(data);
         auto loss = F::nll_loss(output, targets);
+
+
         AT_ASSERT(!std::isnan(loss.template item<float>()));
         loss.backward();
         optimizer.step();
@@ -278,8 +281,12 @@ int main() {
 
     // You must specify the kind of optimizer in the following code
 
-    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(/*lr=*/0.001).momentum(0.9));
+    //torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(/*lr=*/0.001).momentum(0.9));
+    //torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(5e-4).betas(std::make_tuple(0.5, 0.999)));
 
+    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(5e-4).betas(std::make_tuple(0.6, 0.999)));
+    //torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(5e-4).betas(std::make_tuple(0.6, 0.999))); -> 0.533
+    // torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(5e-4).betas(std::make_tuple(0.4, 0.999))); -> result 0.518
     ////////////////////////////////////////////////////////////////
 
     for (size_t epoch = 1; epoch <= kNumberOfEpochs; ++epoch) {
