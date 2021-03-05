@@ -61,3 +61,5 @@ imgClassCNNWithLibTorch/.idea
 imgClassCNNWithLibTorch/cmake-build-debug
 assignment2_cifar10_improved_cnn/.idea
 assignment2_cifar10_improved_cnn/cmake-build-debug
+tesseract_ocr_sample/.idea
+tesseract_ocr_sample/cmake-build-debug
