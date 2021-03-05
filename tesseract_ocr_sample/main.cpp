@@ -13,7 +13,8 @@ int main() {
     auto img = imread("tesseract-snapshot.png", IMREAD_COLOR);
 
     auto ocr = new tesseract::TessBaseAPI();
-    ocr->Init(NULL, "eng", tesseract::OEM_LSTM_ONLY);
+    std::string tessDataPath = "D:\\Program Files\\Tesseract-OCR\\tessdata";
+    ocr->Init(tessDataPath.c_str(), "eng", tesseract::OEM_LSTM_ONLY);
     ocr->SetPageSegMode(tesseract::PSM_AUTO);
     ocr->SetImage(img.data, img.cols,img.rows,3,img.step);
 
